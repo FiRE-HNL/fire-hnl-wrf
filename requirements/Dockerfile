@@ -1,5 +1,8 @@
 # Start from your WRF runtime container
-FROM ncar/iwrf:20241203
+# There are several errors using this iwrf container
+# and I do not have time to deal with it right now
+# FROM ncar/iwrf:20241203
+FROM kkeene44/wrf-coop:version16
 
 # Install Python (let's pick Python 3.10, which is default on Ubuntu 22.04)
 RUN apt update && \
@@ -17,4 +20,4 @@ RUN pip install \
     pandas
 
 # (Optional) Set the working directory to wrfuser home
-WORKDIR /home/wrfuser
+# WORKDIR /home/wrfuser

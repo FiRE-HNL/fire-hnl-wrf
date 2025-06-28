@@ -4,6 +4,9 @@
 # FROM ncar/iwrf:20241203
 FROM kkeene44/wrf-coop:version16
 
+# Ensure we are root
+USER root
+
 # Enable EPEL repository for python3
 RUN yum -y update && \
     yum -y install epel-release && \
@@ -22,3 +25,5 @@ RUN pip install \
 
 # (Optional) Set the working directory to wrfuser home
 # WORKDIR /home/wrfuser
+
+USER wrfuser

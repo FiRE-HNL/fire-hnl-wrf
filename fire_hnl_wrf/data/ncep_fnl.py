@@ -16,7 +16,7 @@ __projection_data_source__ = 'https://rda.ucar.edu/datasets/ds316-1'
 DATASET_URL = {
     'prod': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod',
     'ds084.1': 'https://data.rda.ucar.edu/ds084.1',  # future-short
-    'ds083.2': 'https://stratus.rda.ucar.edu/ds083.2',  # past
+    'ds083.2': 'https://data-osdf.rda.ucar.edu/ncar/rda/d083002',  # past
 }
 
 
@@ -81,35 +81,41 @@ class NCEP_FNL(object):
         logging.info(
             f'Downloading data from {self.start_date} to {self.end_date}')
 
+        # Auth is not needed anymore. Consider replacing
+        # and fully removing this section in the next
+        # release of the code.
+
         # check for email and password environment variables
-        if "NCEP_FNL_EMAIL" not in os.environ \
-                or "NCEP_FNL_KEY" not in os.environ:
-            sys.exit(
-                "ERROR: You need to set NCEP_FNL_EMAIL and NCEP_FNL_KEY " +
-                "to enable data downloads. If you do not have an " +
-                "account, go to https://rda.ucar.edu/ and create one."
-            )
+        # if "NCEP_FNL_EMAIL" not in os.environ \
+        #        or "NCEP_FNL_KEY" not in os.environ:
+        #    sys.exit(
+        #        "ERROR: You need to set NCEP_FNL_EMAIL and NCEP_FNL_KEY " +
+        #        "to enable data downloads. If you do not have an " +
+        #        "account, go to https://rda.ucar.edu/ and create one."
+        #    )
 
         # define email and password fields
-        self.email = os.environ['NCEP_FNL_EMAIL']
-        assert re.search(r'[\w.]+\@[\w.]+', self.email), \
-            f'{self.email} is not a valid email.'
+        # self.email = os.environ['NCEP_FNL_EMAIL']
+        # assert re.search(r'[\w.]+\@[\w.]+', self.email), \
+        #    f'{self.email} is not a valid email.'
 
-        self.password = os.environ['NCEP_FNL_KEY']
+        # self.password = os.environ['NCEP_FNL_KEY']
 
         # define cookie filename to store auth
-        self.cookie_filename = f'/home/{os.environ["USER"]}/.ncep_cookie'
+        # self.cookie_filename = f'/home/{os.environ["USER"]}/.ncep_cookie'
 
         # define login url
-        self.auth_url = 'https://rda.ucar.edu/cgi-bin/login'
-        self.auth_request = {
-            'email': self.email,
-            'passwd': self.password,
-            'action': 'login'
-        }
+        # self.auth_url = 'https://rda.ucar.edu/cgi-bin/login'
+        # self.auth_request = {
+        #    'email': self.email,
+        #    'passwd': self.password,
+        #    'action': 'login'
+        # }
 
         # define data url
         self.set_data_url(self.dataset)
+        logging.info(
+            f'Selected URL for download: {self.data_url}')
 
         # setup grib format
         if self.start_date.year < 2008:
@@ -145,6 +151,7 @@ class NCEP_FNL(object):
                 f'--post-data="email={self.email}&' +
                 f'passwd={self.password}&action=login" {self.auth_url}'
             )
+
         return
 
     def _download_file(self, wget_request: str):
@@ -155,7 +162,9 @@ class NCEP_FNL(object):
     def download(self):
 
         # authenticate against NCEP
-        self._authenticate(action="auth")
+        # Looks like there is not need to auth anymore
+        # with this URL, thus we are skipping this step
+        # self._authenticate(action="auth")
 
         # get list of filenames to download
         filenames = self._get_filenames()
@@ -180,10 +189,13 @@ class NCEP_FNL(object):
             # download request for parallel download
             if not os.path.isfile(output_filename) or \
                     os.path.getsize(output_filename) == 0:
+                # skipping auth step
+                # download_requests.append(
+                #    f'wget --load-cookies {self.cookie_filename} ' +
+                #    f'--no-verbose -O {output_filename} {full_url}'
+                # )
                 download_requests.append(
-                    f'wget --load-cookies {self.cookie_filename} ' +
-                    f'--no-verbose -O {output_filename} {full_url}'
-                )
+                    f'wget --no-verbose -O {output_filename} {full_url}')
 
         # Set pool, start parallel multiprocessing
         p = Pool(processes=self.n_procs)
@@ -191,12 +203,15 @@ class NCEP_FNL(object):
         p.close()
         p.join()
 
-        # authenticate against NCEP
-        self._authenticate(action="cleanup")
+        # cleanup auth against NCEP
+        # Looks like there is not need to auth anymore
+        # with this URL, thus we are skipping this step
+        # self._authenticate(action="cleanup")
 
         return
 
     def _get_filenames(self):
+
         # list to store filenames
         filenames_list = []
 
@@ -233,11 +248,18 @@ class NCEP_FNL(object):
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     dates = [
-        # '2003-06-23',
-        # '2005-06-11',
-        # '2023-06-04'
-        '2023-06-23'
+        '2003-06-23',
+        '2005-06-11',
+        '2012-03-01',
+        '2023-06-04',
+        '2025-06-23'
     ]
 
     for init_date in dates:

@@ -4,9 +4,10 @@
 # FROM ncar/iwrf:20241203
 FROM kkeene44/wrf-coop:version16
 
-# Install Python 3 and pip
-RUN dnf -y update && \
-    dnf -y install python3 && \
+# Enable EPEL repository for python3
+RUN yum -y update && \
+    yum -y install epel-release && \
+    yum -y install python3 && \
     ln -s /usr/bin/python3 /usr/bin/python
 
 # Upgrade pip

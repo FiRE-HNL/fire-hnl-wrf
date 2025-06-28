@@ -1,6 +1,6 @@
 # WRF Pipeline
 
-working_dir: /explore/nobackup/projects/ilab/projects/LobodaTFO/operations
+working_dir: /explore/nobackup/projects/above/misc/AK_WRF
 container_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/containers/wrf-baselibs
 wps_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WPS_BASE
 wrf_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WRF_BASE
@@ -19,6 +19,7 @@ container_mounts:
   - /explore/nobackup/projects/ilab'
   - '$NOBACKUP'
   - '/panfs/ccds02/nobackup/projects/ilab'
+  - /explore/nobackup/projects/above'
 
 multi_node: False
 

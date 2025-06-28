@@ -12,7 +12,8 @@ RUN pip install --upgrade pip
 # Install required Python packages
 RUN pip install \
     omegaconf \
-    jinja2
+    jinja2 \
+    requests
 
 # (Optional) Set the working directory to wrfuser home
 WORKDIR /home/wrfuser

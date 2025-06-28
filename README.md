@@ -23,5 +23,19 @@ download the data and other details, so we should at least add Python3 to the co
 Downloading the i-WRF container:
 
 ```bash
-singularity build --sandbox i-wrf docker://ncar/iwrf:latest
+singularity build --sandbox /lscratch/jacaraba/container/i-wrf docker://ncar/iwrf:20241203
+```
+
+Downloading openeuler container:
+
+```bash
+module load singularity; singularity build --sandbox /lscratch/jacaraba/container/openeuler-wrf docker://openeuler/wrf:4.7.0-oe2403sp1
+```
+
+### Using WRF from the Containers
+
+The i-WRF container has WRF available under /home/wrfuser.
+An example on how to quickly test WRF runs properly is listed below.
+
+```bash
 ```

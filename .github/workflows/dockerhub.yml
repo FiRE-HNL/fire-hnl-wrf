@@ -50,6 +50,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./requirements/Dockerfile.dev
+          file: ./requirements/Dockerfile
           push: true
-          tags: nasanccs/fire-hnl-wrf:dev
+          tags: nasanccs/fire-hnl-wrf:latest

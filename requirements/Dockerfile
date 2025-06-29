@@ -27,7 +27,8 @@ RUN pip install \
     geopandas \
     datasets \
     rioxarray \
-    git+https://github.com/NCAR/wrf-python.git@main
+    wrf-python
+    #git+https://github.com/NCAR/wrf-python.git@main
 
 # (Optional) Set the working directory to wrfuser home
 # WORKDIR /home/wrfuser

@@ -6,8 +6,9 @@ FROM nasanccs/fire-hnl-wrf-baselibs:latest
 
 # Install Python 3 (Rocky 8 provides Python 3.6 by default, but you can enable newer if needed)
 RUN dnf -y update && \
-    dnf -y install python3.11 && \
-    ln -s /usr/bin/python3.11 /usr/bin/python
+    dnf -y install python3.11 python3.11-pip && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python && \
+    ln -sf /usr/bin/pip3.11 /usr/bin/pip
 
 # Upgrade pip (recommended)
 RUN python -m pip install --upgrade pip

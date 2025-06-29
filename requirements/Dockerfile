@@ -18,7 +18,14 @@ RUN pip install \
     omegaconf \
     jinja2 \
     requests \
-    pandas
+    pandas \
+    netCDF4 \
+    xwrf \
+    xarray \
+    rasterio \
+    wrf \
+    metpy \
+    https://github.com/NCAR/wrf-python@main
 
 # (Optional) Set the working directory to wrfuser home
 # WORKDIR /home/wrfuser

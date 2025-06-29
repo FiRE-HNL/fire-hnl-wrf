@@ -2,8 +2,10 @@
 
 working_dir: /explore/nobackup/projects/above/misc/AK_WRF
 container_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/containers/wrf-baselibs
-wps_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WPS_BASE
-wrf_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WRF_BASE
+# wps_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WPS_BASE
+wps_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WPS-4.6.0
+# wrf_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WRF_BASE
+wrf_path: /explore/nobackup/projects/ilab/projects/LobodaTFO/software/WRF-4.6.0
 
 # WPS Template Configurations
 wps_config:

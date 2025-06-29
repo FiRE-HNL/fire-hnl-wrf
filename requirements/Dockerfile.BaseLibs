@@ -20,7 +20,7 @@ RUN dnf -y update && \
         php-devel php-pear openssl-devel bzip2-devel libffi-devel xz-devel && \
     dnf -y groupinstall "Development Tools" && \
     dnf -y clean all --enablerepo='*' && \
-p    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf
 
 # Set up base systems
 RUN groupadd wrf -g 9999

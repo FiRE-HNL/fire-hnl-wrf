@@ -28,6 +28,7 @@ RUN python -m pip install --upgrade pip
 
 # Install Python packages (wrf-python last, so you see errors clearly)
 RUN pip install \
+    numpy<2.0 \
     omegaconf \
     jinja2 \
     requests \

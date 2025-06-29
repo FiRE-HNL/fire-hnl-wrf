@@ -1,4 +1,4 @@
-FROM rockylinux:8
+FROM rockylinux:9
 MAINTAINER Jordan A Caraballo-Vega <jordan.a.caraballo-vega@nasa.gov>
 
 ENV NML_VERSION 4.4

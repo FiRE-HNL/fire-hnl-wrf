@@ -131,19 +131,6 @@ class WRFPipeline(object):
         logging.info(
             f'Changed working directory to {self.local_wps_path}')
 
-        # setup geogrid command
-        # if not self.conf.multi_node:
-        #    geodrid_cmd = \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        f'mpirun -np {cpu_count()} --oversubscribe ./geogrid.exe'
-        # else:
-        #    geodrid_cmd = 'mpirun -np 40 --host gpu016 --oversubscribe' + \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/lscratch,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ./geogrid.exe'
-
         geodrid_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./geogrid.exe'
 
         # run geogrid command
@@ -184,19 +171,6 @@ class WRFPipeline(object):
         os.system(f'./link_grib.csh {common_prefix}')
         logging.info('Done with link_grib.csh')
 
-        # setup ungrib command
-        # if not self.conf.multi_node:
-        #    ungrib_cmd = \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ./ungrib.exe'
-        # else:
-        #    ungrib_cmd = \
-        #        'srun --mpi=pmix -N 1 -n 1 singularity exec -B ' + \
-        #        '/explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        './ungrib.exe'
         ungrib_cmd = './ungrib.exe'
 
         # run ungrib command
@@ -218,21 +192,6 @@ class WRFPipeline(object):
         # go to WPS directory and run wps
         os.chdir(self.local_wps_path)
         logging.info(f'Changed working directory to {self.local_wps_path}')
-
-        # setup metgrid command
-        # if not self.conf.multi_node:
-        #    metgrid_cmd = \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        f'mpirun -np {cpu_count()} --oversubscribe ./metgrid.exe'
-        # else:
-        #    metgrid_cmd = \
-        #        f'srun --mpi=pmix -N 1 -n {cpu_count()} singularity ' + \
-        #        'exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        './metgrid.exe'
 
         metgrid_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./metgrid.exe'
 
@@ -269,21 +228,6 @@ class WRFPipeline(object):
         os.chdir(self.local_wrf_path)
         logging.info(f'Changed working directory to {self.local_wrf_path}')
 
-        # setup real command
-        # if not self.conf.multi_node:
-        #    real_cmd = \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        f'mpirun -np {cpu_count()} --oversubscribe ./real.exe'
-        # else:
-        #    real_cmd = \
-        #        'srun --mpi=pmix -N 2 -n 80 singularity ' + \
-        #        'exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        './real.exe'
-
         real_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./real.exe'
 
         # run metgrid command
@@ -306,28 +250,10 @@ class WRFPipeline(object):
         os.chdir(self.local_wrf_path)
         logging.info(f'Changed working directory to {self.local_wrf_path}')
 
-        # setup metgrid command
-        # if not self.conf.multi_node:
-        #    wrf_cmd = \
-        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        f'mpirun -np {cpu_count()} --oversubscribe ./wrf.exe'
-        # else:
-        #    wrf_cmd = \
-        #        'srun --mpi=pmix -N 2 -n 80 singularity ' + \
-        #        'exec -B /explore/nobackup/projects/ilab,' + \
-        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-        #        f'{self.conf.container_path} ' + \
-        #        './wrf.exe'
-
         wrf_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./wrf.exe'
 
         # run metgrid command
         os.system(wrf_cmd)
-
-        # TODO
-        # move output files at the end to something like working_dir/results
 
         return
 

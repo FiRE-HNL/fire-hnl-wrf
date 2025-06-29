@@ -25,7 +25,10 @@ RUN pip install \
     rasterio \
     wrf \
     metpy \
-    https://github.com/NCAR/wrf-python@main
+    geopandas \
+    datasets \
+    rioxarray \
+    git+https://github.com/NCAR/wrf-python.git@main
 
 # (Optional) Set the working directory to wrfuser home
 # WORKDIR /home/wrfuser

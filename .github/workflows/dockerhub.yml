@@ -1,4 +1,4 @@
-name: CI to Dockerhub - i-WRF
+name: CI to Dockerhub - FiRE-HNL-WRF
 
 on:
   push:

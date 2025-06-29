@@ -11,8 +11,8 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 from fire_hnl_wrf.config import Config
 from fire_hnl_wrf.common import read_config
-from fire_hnl_wrf.data_download.ncep_fnl import NCEP_FNL
-from fire_hnl_wrf.analysis.wrf_analysis import WRFAnalysis
+from fire_hnl_wrf.data.ncep_fnl import NCEP_FNL
+# from fire_hnl_wrf.analysis.wrf_analysis import WRFAnalysis
 
 
 class WRFPipeline(object):
@@ -29,7 +29,6 @@ class WRFPipeline(object):
         self.conf = read_config(config_filename, Config)
         logging.info(f'Loaded configuration from {config_filename}')
 
-        """
         # Set value for forecast start and end date
         self.start_date = start_date
         self.end_date = self.start_date + datetime.timedelta(
@@ -75,7 +74,7 @@ class WRFPipeline(object):
 
         # setup multi_node variable
         self.conf.multi_node = multi_node
-        """
+
     # -------------------------------------------------------------------------
     # setup
     # -------------------------------------------------------------------------
@@ -98,6 +97,8 @@ class WRFPipeline(object):
             self.end_date
         )
         data_downloader.download()
+        logging.info(
+            'Done downloading data from setup pipeline step')
 
         # Generate configuration files for WPS - namelist.wps
         self.setup_wps_config()
@@ -116,6 +117,8 @@ class WRFPipeline(object):
 
         # setup WPS directory
         if not os.path.exists(self.local_wps_path):
+            logging.info(
+                f'Copying contents from {self.conf.wps_path} to {self.local_wps_path}')
             shutil.copytree(
                 self.conf.wps_path, self.local_wps_path, dirs_exist_ok=True)
             logging.info(f'Done copying WPS to {self.local_wps_path}')
@@ -125,20 +128,23 @@ class WRFPipeline(object):
 
         # go to WPS directory and run wps
         os.chdir(self.local_wps_path)
-        logging.info(f'Changed working directory to {self.local_wps_path}')
+        logging.info(
+            f'Changed working directory to {self.local_wps_path}')
 
         # setup geogrid command
-        if not self.conf.multi_node:
-            geodrid_cmd = \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                f'mpirun -np {cpu_count()} --oversubscribe ./geogrid.exe'
-        else:
-            geodrid_cmd = 'mpirun -np 40 --host gpu016 --oversubscribe' + \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/lscratch,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ./geogrid.exe'
+        # if not self.conf.multi_node:
+        #    geodrid_cmd = \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        f'mpirun -np {cpu_count()} --oversubscribe ./geogrid.exe'
+        # else:
+        #    geodrid_cmd = 'mpirun -np 40 --host gpu016 --oversubscribe' + \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/lscratch,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ./geogrid.exe'
+
+        geodrid_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./geogrid.exe'
 
         # run geogrid command
         os.system(geodrid_cmd)
@@ -179,18 +185,19 @@ class WRFPipeline(object):
         logging.info('Done with link_grib.csh')
 
         # setup ungrib command
-        if not self.conf.multi_node:
-            ungrib_cmd = \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ./ungrib.exe'
-        else:
-            ungrib_cmd = \
-                'srun --mpi=pmix -N 1 -n 1 singularity exec -B ' + \
-                '/explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                './ungrib.exe'
+        # if not self.conf.multi_node:
+        #    ungrib_cmd = \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ./ungrib.exe'
+        # else:
+        #    ungrib_cmd = \
+        #        'srun --mpi=pmix -N 1 -n 1 singularity exec -B ' + \
+        #        '/explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        './ungrib.exe'
+        ungrib_cmd = './ungrib.exe'
 
         # run ungrib command
         os.system(ungrib_cmd)
@@ -213,19 +220,21 @@ class WRFPipeline(object):
         logging.info(f'Changed working directory to {self.local_wps_path}')
 
         # setup metgrid command
-        if not self.conf.multi_node:
-            metgrid_cmd = \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                f'mpirun -np {cpu_count()} --oversubscribe ./metgrid.exe'
-        else:
-            metgrid_cmd = \
-                f'srun --mpi=pmix -N 1 -n {cpu_count()} singularity ' + \
-                'exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                './metgrid.exe'
+        # if not self.conf.multi_node:
+        #    metgrid_cmd = \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        f'mpirun -np {cpu_count()} --oversubscribe ./metgrid.exe'
+        # else:
+        #    metgrid_cmd = \
+        #        f'srun --mpi=pmix -N 1 -n {cpu_count()} singularity ' + \
+        #        'exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        './metgrid.exe'
+
+        metgrid_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./metgrid.exe'
 
         # run metgrid command
         os.system(metgrid_cmd)
@@ -261,19 +270,21 @@ class WRFPipeline(object):
         logging.info(f'Changed working directory to {self.local_wrf_path}')
 
         # setup real command
-        if not self.conf.multi_node:
-            real_cmd = \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                f'mpirun -np {cpu_count()} --oversubscribe ./real.exe'
-        else:
-            real_cmd = \
-                'srun --mpi=pmix -N 2 -n 80 singularity ' + \
-                'exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                './real.exe'
+        # if not self.conf.multi_node:
+        #    real_cmd = \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        f'mpirun -np {cpu_count()} --oversubscribe ./real.exe'
+        # else:
+        #    real_cmd = \
+        #        'srun --mpi=pmix -N 2 -n 80 singularity ' + \
+        #        'exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        './real.exe'
+
+        real_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./real.exe'
 
         # run metgrid command
         os.system(real_cmd)
@@ -296,19 +307,21 @@ class WRFPipeline(object):
         logging.info(f'Changed working directory to {self.local_wrf_path}')
 
         # setup metgrid command
-        if not self.conf.multi_node:
-            wrf_cmd = \
-                'singularity exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                f'mpirun -np {cpu_count()} --oversubscribe ./wrf.exe'
-        else:
-            wrf_cmd = \
-                'srun --mpi=pmix -N 2 -n 80 singularity ' + \
-                'exec -B /explore/nobackup/projects/ilab,' + \
-                '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
-                f'{self.conf.container_path} ' + \
-                './wrf.exe'
+        # if not self.conf.multi_node:
+        #    wrf_cmd = \
+        #        'singularity exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        f'mpirun -np {cpu_count()} --oversubscribe ./wrf.exe'
+        # else:
+        #    wrf_cmd = \
+        #        'srun --mpi=pmix -N 2 -n 80 singularity ' + \
+        #        'exec -B /explore/nobackup/projects/ilab,' + \
+        #        '$NOBACKUP,/panfs/ccds02/nobackup/projects/ilab ' + \
+        #        f'{self.conf.container_path} ' + \
+        #        './wrf.exe'
+
+        wrf_cmd = f'mpirun -np {cpu_count()} --oversubscribe ./wrf.exe'
 
         # run metgrid command
         os.system(wrf_cmd)
@@ -433,7 +446,7 @@ class WRFPipeline(object):
 
         # Setup jinja2 Environment
         env = Environment(
-            loader=PackageLoader("wildfire_occurrence"),
+            loader=PackageLoader("fire_hnl_wrf"),
             autoescape=select_autoescape()
         )
 
@@ -460,7 +473,7 @@ class WRFPipeline(object):
 
         # Setup jinja2 Environment
         env = Environment(
-            loader=PackageLoader("wildfire_occurrence"),
+            loader=PackageLoader("fire_hnl_wrf"),
             autoescape=select_autoescape()
         )
 

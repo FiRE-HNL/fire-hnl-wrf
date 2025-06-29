@@ -100,8 +100,8 @@ def main():
         pipeline.real()
     if "wrf" in args.pipeline_step or "all" in args.pipeline_step:
         pipeline.wrf()
-    if "postprocess" in args.pipeline_step or "all" in args.pipeline_step:
-        pipeline.postprocess()
+    # if "postprocess" in args.pipeline_step or "all" in args.pipeline_step:
+    #    pipeline.postprocess()
 
     logging.info(f'Took {(time.time()-timer)/60.0:.2f} min.')
 

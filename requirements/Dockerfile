@@ -23,7 +23,6 @@ RUN pip install \
     xwrf \
     xarray \
     rasterio \
-    wrf \
     metpy \
     geopandas \
     datasets \

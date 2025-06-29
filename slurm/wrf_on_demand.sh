@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name "DailyGPUWRF"
 #SBATCH --time=05-00:00:0
-#SBATCH -N 1
+#SBATCH -N 1 -c 40
 #SBATCH --mail-user=jordan.a.caraballo-vega@nasa.gov
 #SBATCH --mail-type=ALL
 #SBATCH --output=/explore/nobackup/projects/ilab/projects/LobodaTFO/operations/fire-hnl-wrf/logs/daily-wrf-%x.%j.out

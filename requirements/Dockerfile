@@ -39,5 +39,5 @@ RUN pip install \
     metpy \
     geopandas \
     rioxarray \
-    #xwrf \
-    git+https://github.com/NCAR/wrf-python.git@main
+    xwrf
+    #git+https://github.com/NCAR/wrf-python.git@main

@@ -1,61 +1,52 @@
 # Start from your WRF runtime container
 FROM nasanccs/fire-hnl-wrf-baselibs:latest-arm64
 
-# --- Python 3.11
+# Python & toolchain
 RUN dnf -y update && \
     dnf -y install python3.11 python3.11-pip dnf-plugins-core && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/pip3.11 /usr/bin/pip
 
-# --- Build deps commonly needed by geospatial wheels
+# Build deps (add glibc/kheaders/pkgconf!)
 RUN dnf -y install \
     python3.11-devel gcc gcc-c++ make \
+    glibc-headers kernel-headers pkgconf-pkg-config \
     hdf5-devel libffi-devel openblas-devel git \
     libtiff-devel libjpeg-turbo-devel openjpeg2-devel sqlite-devel zlib-devel
 
-# --- Add OSGeo repo to get NEWER GDAL/PROJ on EL9 (Rocky/RHEL clones)
-# (This bumps GDAL to >=3.9 and PROJ to >=9.x)
-# RUN dnf config-manager --add-repo https://download.osgeo.org/yum/osgeo-el9.repo && \
-#    dnf -y update && \
-#    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
-#    dnf clean all && rm -rf /var/cache/dnf
-RUN dnf -y install epel-release && \
-    dnf -y update && \
-    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
+# Use EL9 base/EPEL GDAL/PROJ (these are 3.4.3 / 8.2)
+RUN dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
     dnf clean all && rm -rf /var/cache/dnf
 
-# --- Make sure build tools find system GDAL/PROJ
-ENV GDAL_CONFIG=/usr/bin/gdal-config
-ENV PROJ_DIR=/usr
-ENV CPLUS_INCLUDE_PATH=/usr/include
+# Make sure builds can see headers/libs
 ENV C_INCLUDE_PATH=/usr/include
-# pkg-config helps some builds find headers/libs
-ENV PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib64/pkgconfig:${PKG_CONFIG_PATH}
+ENV CPLUS_INCLUDE_PATH=/usr/include
+ENV PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib64/pkgconfig
 
-# --- Your NetCDF paths (keep as you had)
+# (your netcdf env as before)
 ENV NETCDF=/wrf/libs/netcdf
-ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openmpi:/wrf/libs/netcdf/lib:/usr/lib64:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openmpi:/wrf/libs/netcdf/lib:/usr/lib64
 ENV CFLAGS="-I${NETCDF}/include"
 ENV LDFLAGS="-L${NETCDF}/lib"
 
-# --- Upgrade pip/setuptools/wheel
-RUN python -m pip install --upgrade pip setuptools wheel
+RUN python -m pip install --upgrade pip setuptools wheel cython
 
-# --- Install in a safe order and BUILD against system GDAL/PROJ
-# NOTE:
-#   * Force no-binary for pyproj/fiona/rasterio so they link to system toolchain
-#   * Keep shapely as binary (no GDAL dependency; faster)
-RUN pip install --no-cache-dir \
-      shapely \
-      pyproj \
-      rasterio==1.3.11 \
-      "numpy<2.0" pandas netCDF4 xarray metpy geopandas rioxarray \
-      omegaconf jinja2 requests xwrf
+# --- Install in a compatible order/versions ---
+# shapely can be a wheel; build the rest against system GDAL/PROJ (3.4.3 / 8.2)
+RUN pip install --no-cache-dir --prefer-binary shapely==2.1.2 && \
+    pip install --no-cache-dir --no-binary=pyproj pyproj==3.6.1 && \
+    pip install --no-cache-dir --no-binary=fiona fiona==1.9.6 && \
+    pip install --no-cache-dir --no-binary=rasterio rasterio==1.3.10 && \
+    pip install --no-cache-dir --prefer-binary \
+        "numpy<2.0" pandas netCDF4 xarray metpy geopandas rioxarray \
+        omegaconf jinja2 requests xwrf
 
-# (optional) show final GDAL versions at build time to confirm
-RUN gdal-config --version && python -c "import rasterio, pyproj, fiona; \
-print('rasterio', rasterio.__version__); \
-import subprocess, sys; \
-print('GDAL (gdal-config):', subprocess.check_output(['gdal-config','--version']).decode().strip()); \
-print('pyproj', pyproj.__version__); \
-print('fiona', fiona.__version__)"
+# Sanity check
+RUN gdal-config --version && python - <<'PY'
+import subprocess, rasterio, pyproj, fiona, shapely
+print("GDAL (gdal-config):", subprocess.check_output(["gdal-config","--version"]).decode().strip())
+print("rasterio", rasterio.__version__)
+print("pyproj", pyproj.__version__)
+print("fiona", fiona.__version__)
+print("shapely", shapely.__version__)
+PY

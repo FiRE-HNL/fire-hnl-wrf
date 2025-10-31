@@ -15,9 +15,13 @@ RUN dnf -y install \
 
 # --- Add OSGeo repo to get NEWER GDAL/PROJ on EL9 (Rocky/RHEL clones)
 # (This bumps GDAL to >=3.9 and PROJ to >=9.x)
-RUN dnf config-manager --add-repo https://download.osgeo.org/yum/osgeo-el9.repo && \
+# RUN dnf config-manager --add-repo https://download.osgeo.org/yum/osgeo-el9.repo && \
+#    dnf -y update && \
+#    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
+#    dnf clean all && rm -rf /var/cache/dnf
+RUN dnf -y install epel-release && \
     dnf -y update && \
-    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
+    dnf -y install gdal gdal-python gdal-devel proj proj-devel geos geos-devel && \
     dnf clean all && rm -rf /var/cache/dnf
 
 # --- Make sure build tools find system GDAL/PROJ
@@ -42,10 +46,10 @@ RUN python -m pip install --upgrade pip setuptools wheel
 #   * Force no-binary for pyproj/fiona/rasterio so they link to system toolchain
 #   * Keep shapely as binary (no GDAL dependency; faster)
 RUN pip install --no-cache-dir "numpy<2.0" cython && \
-    pip install --no-cache-dir --prefer-binary shapely==2.0.4 && \
-    pip install --no-cache-dir --no-binary=pyproj pyproj>=3.7 && \
-    pip install --no-cache-dir --no-binary=fiona fiona>=1.9.6 && \
-    pip install --no-cache-dir --no-binary=rasterio rasterio>=1.4.3 && \
+    pip install --no-cache-dir --prefer-binary shapely && \
+    pip install --no-cache-dir --no-binary=pyproj pyproj && \
+    pip install --no-cache-dir --no-binary=fiona fiona && \
+    pip install --no-cache-dir --no-binary=rasterio rasterio && \
     pip install --no-cache-dir --prefer-binary \
         pandas netCDF4 xarray metpy geopandas rioxarray \
         omegaconf jinja2 requests xwrf

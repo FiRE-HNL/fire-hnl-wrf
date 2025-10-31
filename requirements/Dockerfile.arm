@@ -61,7 +61,7 @@ RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir --only-binary=:all: \
       shapely \
       pyproj \
-      fiona \
+      #fiona \
       rasterio && \
     pip install --no-cache-dir --prefer-binary \
       "numpy<2.0" \

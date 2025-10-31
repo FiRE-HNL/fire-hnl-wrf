@@ -17,6 +17,21 @@ RUN dnf -y install \
     openblas-devel \
     git
 
+# 🔧 Geospatial stack needed to build rasterio/fiona/pyproj against system GDAL
+RUN dnf -y install \
+    gdal gdal-devel \
+    proj proj-devel \
+    geos geos-devel \
+    libtiff-devel libjpeg-turbo-devel openjpeg2-devel \
+    sqlite-devel
+
+# Ensure pip sees gdal-config
+ENV GDAL_CONFIG=/usr/bin/gdal-config
+# (Optional) some builds check this
+ENV PROJ_DIR=/usr
+ENV CPLUS_INCLUDE_PATH=/usr/include
+ENV C_INCLUDE_PATH=/usr/include
+
 # Export netCDF variables
 ENV NETCDF=/wrf/libs/netcdf
 ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openmpi:/wrf/libs/netcdf/lib:$LD_LIBRARY_PATH

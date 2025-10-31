@@ -1,77 +1,59 @@
 # Start from your WRF runtime container
 FROM nasanccs/fire-hnl-wrf-baselibs:latest-arm64
 
-# Install Python 3.11 and pip
+# --- Python 3.11
 RUN dnf -y update && \
-    dnf -y install python3.11 python3.11-pip && \
+    dnf -y install python3.11 python3.11-pip dnf-plugins-core && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/pip3.11 /usr/bin/pip
 
-# Install build dependencies for wrf-python
+# --- Build deps commonly needed by geospatial wheels
 RUN dnf -y install \
-    python3.11-devel \
-    gcc \
-    gcc-c++ \
-    hdf5-devel \
-    libffi-devel \
-    openblas-devel \
-    git
+    python3.11-devel gcc gcc-c++ make \
+    hdf5-devel libffi-devel openblas-devel git \
+    libtiff-devel libjpeg-turbo-devel openjpeg2-devel sqlite-devel zlib-devel
 
-# 🔧 Geospatial stack needed to build rasterio/fiona/pyproj against system GDAL
-RUN dnf -y install \
-    gdal gdal-devel \
-    proj proj-devel \
-    geos geos-devel \
-    libtiff-devel libjpeg-turbo-devel openjpeg2-devel \
-    sqlite-devel
+# --- Add OSGeo repo to get NEWER GDAL/PROJ on EL9 (Rocky/RHEL clones)
+# (This bumps GDAL to >=3.9 and PROJ to >=9.x)
+RUN dnf config-manager --add-repo https://download.osgeo.org/yum/osgeo-el9.repo && \
+    dnf -y update && \
+    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
+    dnf clean all && rm -rf /var/cache/dnf
 
-# Ensure pip sees gdal-config
+# --- Make sure build tools find system GDAL/PROJ
 ENV GDAL_CONFIG=/usr/bin/gdal-config
-# (Optional) some builds check this
 ENV PROJ_DIR=/usr
 ENV CPLUS_INCLUDE_PATH=/usr/include
 ENV C_INCLUDE_PATH=/usr/include
+# pkg-config helps some builds find headers/libs
+ENV PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/local/lib64/pkgconfig:${PKG_CONFIG_PATH}
 
-# Export netCDF variables
+# --- Your NetCDF paths (keep as you had)
 ENV NETCDF=/wrf/libs/netcdf
-ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openmpi:/wrf/libs/netcdf/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openmpi:/wrf/libs/netcdf/lib:/usr/lib64:${LD_LIBRARY_PATH}
 ENV CFLAGS="-I${NETCDF}/include"
 ENV LDFLAGS="-L${NETCDF}/lib"
 
-# Upgrade pip
-RUN python -m pip install --upgrade pip
+# --- Upgrade pip/setuptools/wheel
+RUN python -m pip install --upgrade pip setuptools wheel
 
-# Install Python packages (wrf-python last, so you see errors clearly)
-#RUN pip install \
-#    "numpy<2.0" \
-#    omegaconf \
-#    jinja2 \
-#    requests \
-#    pandas \
-#    netCDF4 \
-#    xarray \
-#    rasterio \
-#   metpy \
-#   geopandas \
-#   rioxarray \
-#   xwrf
-#   #git+https://github.com/NCAR/wrf-python.git@main
-
-# Install the heavy geospatial wheels first (force binaries, no compiles)
-RUN pip install --no-cache-dir --only-binary=:all: \
-      shapely \
-      pyproj \
-      #fiona \
-      rasterio && \
+# --- Install in a safe order and BUILD against system GDAL/PROJ
+# NOTE:
+#   * Force no-binary for pyproj/fiona/rasterio so they link to system toolchain
+#   * Keep shapely as binary (no GDAL dependency; faster)
+RUN pip install --no-cache-dir "numpy<2.0" cython && \
+    pip install --no-cache-dir --prefer-binary shapely==2.0.4 && \
+    pip install --no-cache-dir --no-binary=pyproj pyproj>=3.7 && \
+    pip install --no-cache-dir --no-binary=fiona fiona>=1.9.6 && \
+    pip install --no-cache-dir --no-binary=rasterio rasterio>=1.4.3 && \
     pip install --no-cache-dir --prefer-binary \
-      "numpy<2.0" \
-      pandas \
-      netCDF4 \
-      xarray \
-      metpy \
-      geopandas \
-      rioxarray \
-      omegaconf \
-      jinja2 \
-      requests \
-      xwrf
+        pandas netCDF4 xarray metpy geopandas rioxarray \
+        omegaconf jinja2 requests xwrf
+
+# (optional) show final GDAL versions at build time to confirm
+RUN gdal-config --version && python -c "import rasterio, pyproj, fiona; \
+print('rasterio', rasterio.__version__); \
+import subprocess, sys; \
+print('GDAL (gdal-config):', subprocess.check_output(['gdal-config','--version']).decode().strip()); \
+print('pyproj', pyproj.__version__); \
+print('fiona', fiona.__version__)"

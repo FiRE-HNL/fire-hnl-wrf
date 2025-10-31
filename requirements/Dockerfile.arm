@@ -21,7 +21,7 @@ RUN dnf -y install \
 #    dnf clean all && rm -rf /var/cache/dnf
 RUN dnf -y install epel-release && \
     dnf -y update && \
-    dnf -y install gdal gdal-python gdal-devel proj proj-devel geos geos-devel && \
+    dnf -y install gdal gdal-devel proj proj-devel geos geos-devel && \
     dnf clean all && rm -rf /var/cache/dnf
 
 # --- Make sure build tools find system GDAL/PROJ

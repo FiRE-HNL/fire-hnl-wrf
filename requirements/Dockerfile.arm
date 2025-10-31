@@ -42,17 +42,36 @@ ENV LDFLAGS="-L${NETCDF}/lib"
 RUN python -m pip install --upgrade pip
 
 # Install Python packages (wrf-python last, so you see errors clearly)
-RUN pip install \
-    "numpy<2.0" \
-    omegaconf \
-    jinja2 \
-    requests \
-    pandas \
-    netCDF4 \
-    xarray \
-    rasterio \
-    metpy \
-    geopandas \
-    rioxarray \
-    xwrf
-    #git+https://github.com/NCAR/wrf-python.git@main
+#RUN pip install \
+#    "numpy<2.0" \
+#    omegaconf \
+#    jinja2 \
+#    requests \
+#    pandas \
+#    netCDF4 \
+#    xarray \
+#    rasterio \
+#   metpy \
+#   geopandas \
+#   rioxarray \
+#   xwrf
+#   #git+https://github.com/NCAR/wrf-python.git@main
+
+# Install the heavy geospatial wheels first (force binaries, no compiles)
+RUN pip install --no-cache-dir --only-binary=:all: \
+      shapely==2.0.4 \
+      pyproj==3.6.1 \
+      fiona==1.9.6 \
+      rasterio==1.3.10 && \
+    pip install --no-cache-dir --prefer-binary \
+      "numpy<2.0" \
+      pandas \
+      netCDF4 \
+      xarray \
+      metpy \
+      geopandas \
+      rioxarray \
+      omegaconf \
+      jinja2 \
+      requests \
+      xwrf

@@ -3,14 +3,14 @@ FROM nasanccs/fire-hnl-wrf-baselibs:latest-arm64
 
 # Python & toolchain
 RUN dnf -y update && \
-    dnf -y install python3.11 python3.11-pip dnf-plugins-core && \
+    dnf -y install python3.11 python3.11-pip python3.11-devel dnf-plugins-core && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/pip3.11 /usr/bin/pip
 
 # Build deps (add glibc/kheaders/pkgconf!)
 RUN dnf -y install \
-    python3.11-devel gcc gcc-c++ make \
-    glibc-headers kernel-headers pkgconf-pkg-config \
+    gcc gcc-c++ make \
+    glibc-devel glibc-headers kernel-headers pkgconf pkgconf-pkg-config \
     hdf5-devel libffi-devel openblas-devel git \
     libtiff-devel libjpeg-turbo-devel openjpeg2-devel sqlite-devel zlib-devel
 

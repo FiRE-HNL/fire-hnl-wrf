@@ -33,8 +33,8 @@ RUN python -m pip install --upgrade pip setuptools wheel cython
 
 # --- Install in a compatible order/versions ---
 # shapely can be a wheel; build the rest against system GDAL/PROJ (3.4.3 / 8.2)
-#--only-binary=:all:
-#RUN pip install --no-cache-dir --prefer-binary shapely==2.1.2 && \
+# --only-binary=:all:
+# RUN pip install --no-cache-dir --prefer-binary shapely==2.1.2 && \
 #    pip install --no-cache-dir --no-binary=pyproj pyproj==3.5.0 && \
 #    pip install --no-cache-dir --no-binary=rasterio rasterio==1.3.10 && \
 #    pip install --no-cache-dir --prefer-binary \
@@ -42,18 +42,19 @@ RUN python -m pip install --upgrade pip setuptools wheel cython
 #        omegaconf jinja2 requests xwrf
 # Install geo stack as **binary wheels** (bundled GDAL/PROJ), then the rest
 # Order matters: shapely → pyproj → fiona → rasterio → (geopandas/rioxarray/...)
-RUN pip install \
-      --only-binary=:all: shapely==2.1.2 pyproj==3.7.2 fiona==1.9.6 rasterio==1.3.11 && \
-    pip install \
-      --prefer-binary pandas netCDF4 xarray metpy geopandas rioxarray \
-      omegaconf jinja2 requests xwrf
+# RUN pip install \
+#      --only-binary=:all: shapely==2.1.2 pyproj==3.7.2 fiona==1.9.6 rasterio==1.3.11 && \
+#    pip install \
+#      --prefer-binary pandas netCDF4 xarray metpy geopandas rioxarray \
+#      omegaconf jinja2 requests xwrf
+RUN pip install pandas netCDF4 xarray metpy geopandas rioxarray omegaconf jinja2 requests
 
 # Sanity check
-RUN gdal-config --version && python - <<'PY'
-import subprocess, rasterio, pyproj, fiona, shapely
-print("GDAL (gdal-config):", subprocess.check_output(["gdal-config","--version"]).decode().strip())
-print("rasterio", rasterio.__version__)
-print("pyproj", pyproj.__version__)
-print("fiona", fiona.__version__)
-print("shapely", shapely.__version__)
-PY
+#RUN gdal-config --version && python - <<'PY'
+#import subprocess, rasterio, pyproj, fiona, shapely
+#print("GDAL (gdal-config):", subprocess.check_output(["gdal-config","--version"]).decode().strip())
+#print("rasterio", rasterio.__version__)
+#print("pyproj", pyproj.__version__)
+#print("fiona", fiona.__version__)
+#print("shapely", shapely.__version__)
+#PY
